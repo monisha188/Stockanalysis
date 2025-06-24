@@ -1,6 +1,3 @@
-# 📦 Install Dependencies (run in terminal if not installed)
-# pip install pandas numpy matplotlib seaborn plotly scikit-learn statsmodels prophet tensorflow streamlit
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,27 +13,22 @@ from sklearn.metrics import mean_squared_error
 import streamlit as st
 from math import sqrt
 
-# 📥 Load Dataset
 data = pd.read_csv('stock_data.csv')
 data['Date'] = pd.to_datetime(data['Date'])
 data.set_index('Date', inplace=True)
 
-# 📊 Visualize Stock Price
 st.title("📈 Stock Market Forecast Dashboard")
 st.subheader("Historical Stock Price")
 st.line_chart(data['Close'])
 
-# 📏 ARIMA Forecast
 model_arima = ARIMA(data['Close'], order=(5, 1, 0))
 result_arima = model_arima.fit()
 forecast_arima = result_arima.forecast(steps=30)
 
-# 📏 SARIMA Forecast
 model_sarima = SARIMAX(data['Close'], order=(1, 1, 1), seasonal_order=(1, 1, 0, 12))
 result_sarima = model_sarima.fit()
 forecast_sarima = result_sarima.forecast(steps=30)
 
-# 📏 Prophet Forecast
 prophet_df = data.reset_index()[['Date', 'Close']]
 prophet_df.columns = ['ds', 'y']
 model_prophet = Prophet()
@@ -44,7 +36,6 @@ model_prophet.fit(prophet_df)
 future = model_prophet.make_future_dataframe(periods=30)
 forecast_prophet = model_prophet.predict(future)
 
-# 📏 LSTM Forecast
 scaler = MinMaxScaler(feature_range=(0, 1))
 data_scaled = scaler.fit_transform(data[['Close']])
 
@@ -64,7 +55,6 @@ model_lstm.add(Dense(1))
 model_lstm.compile(loss='mean_squared_error', optimizer='adam')
 model_lstm.fit(X, y, epochs=10, batch_size=32, verbose=0)
 
-# 🔮 Predict Future with LSTM
 pred_input = data_scaled[-60:]
 pred_input = pred_input.reshape(1, 60, 1)
 
@@ -77,13 +67,11 @@ for _ in range(30):
 
 lstm_predictions_actual = scaler.inverse_transform(np.array(lstm_predictions).reshape(-1, 1))
 
-# 📅 Create date index for forecast
 last_date = data.index[-1]
 future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=30)
 lstm_forecast_df = pd.DataFrame({'Date': future_dates, 'LSTM_Predicted_Close': lstm_predictions_actual.flatten()})
 lstm_forecast_df.set_index('Date', inplace=True)
 
-# 📊 Streamlit Dashboard Visualization
 st.subheader("ARIMA Forecast")
 st.line_chart(forecast_arima)
 
